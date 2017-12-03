@@ -1,5 +1,8 @@
 import math
 import sys
+import random
+from grid import *
+random.seed()
 
 #Heuristic function (Manhattan distance)
 def h(cur_coord,goal_coord):
@@ -18,10 +21,11 @@ def minNodeFromSet(o_set,parent_set):
 	return node
 
 def getnearby(node):
-	return ( (node[0]+1,node[1]) , (node[0]-1,node[1]) , (node[0],node[1]+1) , (node[0],node[1]-1) )
+	return ( (node[0]+1,node[1]) , (node[0]-1,node[1]) , (node[0],node[1]+1) , (node[0],node[1]-1) , 
+				(node[0]+1,node[1]+1) , (node[0]-1,node[1]-1) , (node[0]-1,node[1]+1) , (node[0]+1,node[1]-1) )
 
 def inGrid(node,grid):
-	return node[1] < len(grid) and node[1] >= 0 and node[0] < len(grid[0]) and node[0] >= 0 
+	return node[1] < len(grid) and node[1] >= 0 and node[0] < len(grid[0]) and node[0] >= 0 and grid[node[0]][node[1]]!=1
 
 #Main function
 def search(grid,start,goal):
@@ -35,7 +39,9 @@ def search(grid,start,goal):
 	f[start] = g[start] + h(start,goal)
 	while(len(Q) != 0):
 		#current = minNodeFromSet(Q,parent)
-		minimal = 1000
+		g[Q[0]]=len(parent)
+		f[Q[0]]=h(Q[0],goal)+g[Q[0]]
+		minimal = f[Q[0]]
 		for node in Q:
 			g[node] = len(parent)
 			f[node] = h(node,goal) + g[node]
@@ -44,7 +50,7 @@ def search(grid,start,goal):
 				min_node = node
 		current = min_node		
 		if(current == goal):
-			return parent
+			return (parent,U)
 			
 
 		Q.remove(current)
@@ -65,30 +71,44 @@ def search(grid,start,goal):
 					if(node not in Q):
 						Q.append(node)
 
-	return False
+	return False,False
+def generateGrid(rows,cols):
+	grid = []
+	for i in range(0,rows):
+		grid.append([])
+		for j in range(0,cols):
+			prob = random.randint(5,15)
+			if(prob == 10):
+				grid[i].append(1)
+			else:
+				grid[i].append(0)
+
+	return grid
 
 def main():
-	grid = [
-	[0,0,0,0,0,0,0,0],
-	[0,0,0,0,0,0,0,0],
-	[0,0,0,0,0,0,0,0],
-	[0,0,0,0,0,0,0,0],
-	[0,0,0,0,0,0,0,0],
-	[0,0,0,0,0,0,0,0],
-	[0,0,0,0,0,0,0,0],
-	[0,0,0,0,0,0,0,0]
-	]
-	path = search(grid,(0,0),(6,7))
-	display_path(path,grid)
+	grid_=generateGrid(128,128)
+	start = (0,0)
+	goal = (100,100)
+	(path,visited) = search(grid_,start,goal)
+	if(path!=False):
+		print("True")
+	display = grid(grid_,path,visited)
+	#display_path(path,grid,start,goal)
 
 
-def display_path(path,grid):
+def display_path(path,grid,start,goal):
 	for i in range(0,len(grid)):
 		for j in range(0,len(grid[0])):
 			if((j,i) not in path):
-				sys.stdout.write("0 ")
+				if((j,i) == start):
+					sys.stdout.write("S ")
+				else:	
+					sys.stdout.write("0 ")
 			else:
-				sys.stdout.write("I ")
+				if((j,i) == goal):
+					sys.stdout.write("G ")
+				else:
+					sys.stdout.write("I ")
 		sys.stdout.write("\n")
 
 if __name__ == '__main__':
